@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+cd ~/htb
+if [ ! -z $1 ]; then
+       	cd $1
+	BOX=$1
+else
+	ls -d */
+	read -p "What box would you like to hack: " MACHINE
+
+	# sanitise user input
+	BOX=${MACHINE//_/} # strip underscores
+	BOX=${MACHINE// /_} # replaces spaces with underscores
+	BOX=${MACHINE//[^a-zA-Z0-9_]/} # remove non alphanumeric or underscore characters
+	BOX=`echo -n $MACHINE | tr A-Z a-z` # lowercase all characters
+
+	mkdir -p $BOX 2>/dev/null
+	cd $BOX
+fi
+[ ! -e "profile" ] && cp ~/htb/profile .  # Copy a default file into dir
+[ -z $(cat profile | grep BOX | cut -f2 -d=) ] && update_profile update BOX $BOX
+tmux new -s $BOX

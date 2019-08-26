@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+
+locate(){
+	entry=$(grep -e "$1" profile)
+}
+
+get_update(){
+	update=$entry\"$1\"
+}
+
+replace(){
+	sed -i "s/$entry/$update/" profile
+}
+
+sanitise(){
+	grep -e "$entry" profile | sed -i 's/= */=/g; s/,"$/"$/g' profile
+}
+
+confirm(){
+	[ ! -z `cat profile | grep $1 | cut -f2 -d=` ] && read -p "The entry already contains $entry. Overwrite? [N/y] " overwrite && if [ ! "$overwrite" = "y" -o ! "$overwrite" = "Y" ]; then
+	exit
+else
+	fi
+}
+
+clean(){
+	locate $1
+	update=$(grep -e "$1" ../profile)
+	replace
+	sanitise
+}
+
+update(){
+	locate $1
+	confirm $1
+	get_update $2
+	replace
+	sanitise
+}
+
+$1 $2 $3 2>/dev/null

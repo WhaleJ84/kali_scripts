@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+
+mkdir -p nmap 2>/dev/null
+BOX=$(pwd)
+IP=$1
+[ -z "$1" ] && read -p "What is the box's IP? " IP
+
+# Do a fast scan for ports
+if [ ! -e "$BOX/nmap/fullport.nmap" ]; then 
+	nmap -Pn -p- -oA nmap/fullport $IP
+	grep -oP '\d{1,5}/open' nmap/fullport.gnmap | sort -nu | awk 'BEGIN { ORS=" "}; {print $1}' | sed 's/\/open/,/g; s/ //g; s/,$//' | xargs update_profile update OPEN_PORTS
+	PORTS=$(cat profile | grep OPEN_PORTS | awk '{print $2}')
+else
+	read -p "fullport scan already detected. Skip this step? [Y/n] " skip
+fi
+[ "$skip" = "N" -o "$skip" = "n" ] && nmap -Pn -p- -oA nmap/fullport $IP && grep -oP '\d{1,5}/open' nmap/fullport.gnmap | sort -nu | awk 'BEGIN { ORS=" "}; {print $1}' | sed 's/\/open/,/g; s/ //g' | xargs update_profile update OPEN_PORTS && PORTS=$(cat profile | grep OPEN_PORTS | awk '{print $2}')
+
+# Scan detected ports in more detail
+if [ ! -e "$BOX/nmap/targeted.nmap" ]; then
+	nmap -Pn -p $PORTS -sC -sV -oA nmap/targeted --script vuln $IP
+else
+	read -p "targeted scan already detected. Skip this step? [Y/n] " skip
+fi
+[ "$skip" = "N" -o "$skip" = "n" ] && nmap -Pn -p $PORTS -sC -sV -oA nmap/targeted --script vuln $IP
+
+# Scan searchsploit for any known vulnerabilities
+if [ ! -e "$BOX/searchsploit_results" ]; then
+	searchsploit --nmap nmap/targeted.xml > searchsploit_results
+else
+	read -p "searchsploit_results already detected. Skip this step? [Y/n] " skip
+fi
+[ "$skip" = "N" -o "$skip" = "n" ] && searchsploit --nmap nmap/targeted.xml > searchsploit_results

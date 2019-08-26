@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+tmux rename-window OpenVPN
+openvpn ../*.ovpn &
+tmux new-window
+service postgresql start
+msfdb init

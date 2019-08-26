@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -x
+nextport=$(cat profile | grep OPEN_PORTS | sed '/80/s/.*80,//' | cut -f1 -d,)
+cat nmap/targeted.nmap | awk "/80\/tcp/{v=1}/$nextport\/tcp/{v=0}v" | grep 10.10.10. | sed -E 's/.*10.10.10./10.10.10./g' | awk 'BEGIN { ORS=","}; {print $1}' | xargs update_profile update WEBSITES_FOUND 
+set +x
