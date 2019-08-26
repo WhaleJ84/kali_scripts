@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 mkdir -p ~/htb 2>/dev/null
 [ ! -e "~/htb/profile" ] && cp profile ~/htb/
